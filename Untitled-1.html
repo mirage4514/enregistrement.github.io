@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProjectFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px;-webkit-font-smoothing:antialiased}
+:root{
+  --cream:#faf9f7;--border:#e8e6e1;--border-lt:rgba(0,0,0,0.06);
+  --txt:#1a1915;--txt2:#6b6860;--txt3:#a8a49e;
+  --acc:#cc785c;--acc2:#b5611d;
+  --g1:rgba(255,255,255,0.72);--gs:rgba(255,255,255,0.88);--gs2:rgba(255,255,255,0.55);
+  --sh:0 0 0 0.5px rgba(0,0,0,0.06),0 2px 4px rgba(0,0,0,0.04),0 8px 24px rgba(0,0,0,0.07),inset 0 1px 0 rgba(255,255,255,0.92);
+  --sh-r:0 0 0 0.5px rgba(0,0,0,0.07),0 4px 8px rgba(0,0,0,0.05),0 16px 40px rgba(0,0,0,0.09),inset 0 1.5px 0 rgba(255,255,255,0.95);
+  --sh-d:0 0 0 0.5px rgba(0,0,0,0.08),0 8px 16px rgba(0,0,0,0.07),0 32px 64px rgba(0,0,0,0.13),inset 0 2px 0 rgba(255,255,255,1);
+  --spec:linear-gradient(135deg,rgba(255,255,255,0.88) 0%,rgba(255,255,255,0) 55%);
+  --blur-m:20px;--blur-l:40px;
+  --rs:10px;--rm:14px;--rl:20px;--rxl:28px;
+  --font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+  --ease:cubic-bezier(0.4,0,0.2,1);--spring:cubic-bezier(0.34,1.4,0.64,1);
+  --ok:#1a7f5a;--ok-b:rgba(26,127,90,0.1);
+  --warn:#9a6200;--warn-b:rgba(154,98,0,0.1);
+  --err:#c0392b;--err-b:rgba(192,57,43,0.09);
+  --inf:#1a5fa8;--inf-b:rgba(26,95,168,0.09);
+}
+body{font-family:var(--font);background:var(--cream);color:var(--txt);min-height:100vh;overflow-x:hidden;letter-spacing:-0.01em}
+
+/* BG */
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 60% 50% at 12% 18%,rgba(255,228,196,0.55) 0%,transparent 70%),
+    radial-gradient(ellipse 50% 60% at 88% 78%,rgba(196,218,255,0.42) 0%,transparent 70%),
+    radial-gradient(ellipse 45% 45% at 52% 48%,rgba(238,234,228,0.65) 0%,transparent 70%),#faf9f7}
+#bg::after{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 35% 35% at 72% 18%,rgba(218,198,255,0.28) 0%,transparent 60%),
+    radial-gradient(ellipse 28% 28% at 18% 82%,rgba(198,240,218,0.22) 0%,transparent 60%);
+  animation:bgp 22s ease-in-out infinite alternate}
+@keyframes bgp{0%{opacity:.6;transform:scale(1)}100%{opacity:1;transform:scale(1.05) translate(-1%,1%)}}
+
+/* GLASS */
+.gl{background:var(--g1);backdrop-filter:blur(var(--blur-m)) saturate(1.6);-webkit-backdrop-filter:blur(var(--blur-m)) saturate(1.6);border:1px solid var(--gs);box-shadow:var(--sh);position:relative;overflow:hidden}
+.gl::before{content:'';position:absolute;inset:0;background:var(--spec);opacity:.55;border-radius:inherit;pointer-events:none}
+.gl-r{background:var(--g1);backdrop-filter:blur(var(--blur-l)) saturate(1.8);-webkit-backdrop-filter:blur(var(--blur-l)) saturate(1.8);border:1px solid var(--gs);box-shadow:var(--sh-r);position:relative;overflow:hidden}
+.gl-r::before{content:'';position:absolute;inset:0;background:var(--spec);opacity:.65;border-radius:inherit;pointer-events:none}
+.gl-d{background:rgba(255,255,255,0.88);backdrop-filter:blur(var(--blur-l)) saturate(2);-webkit-backdrop-filter:blur(var(--blur-l)) saturate(2);border:1px solid var(--gs);box-shadow:var(--sh-d);position:relative;overflow:hidden}
+.gl-d::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,1) 0%,rgba(255,255,255,0) 48%);opacity:.5;border-radius:inherit;pointer-events:none}
+.card{border-radius:var(--rl);padding:1.25rem 1.5rem}
+
+/* LOGIN */
+#scr-login{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center}
+.lbox{width:400px;border-radius:var(--rxl);padding:2.75rem 2.5rem 2.25rem;animation:popIn .5s var(--spring) both}
+@keyframes popIn{from{opacity:0;transform:translateY(22px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.lmark{display:flex;align-items:center;gap:10px;margin-bottom:2rem}
+.lmark-ic{width:36px;height:36px;border-radius:9px;background:linear-gradient(145deg,#d4845a,#c0603a);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(192,96,58,.36),inset 0 1px 0 rgba(255,255,255,.3)}
+.lmark-ic svg{width:18px;height:18px;fill:white}
+.lmark-nm{font-size:1.05rem;font-weight:600;letter-spacing:-.03em}
+.lh{font-size:1.5rem;font-weight:600;letter-spacing:-.04em;margin-bottom:.3rem}
+.lsub{color:var(--txt2);font-size:.875rem;margin-bottom:2rem;line-height:1.5}
+.fi{margin-bottom:1rem}
+.fi label{display:block;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt3);margin-bottom:.4rem}
+.fi input{width:100%;padding:.7rem 1rem;border-radius:var(--rm);border:1px solid var(--border);background:rgba(255,255,255,.62);backdrop-filter:blur(8px);font-family:var(--font);font-size:.9rem;color:var(--txt);outline:none;transition:all .18s;box-shadow:inset 0 1px 2px rgba(0,0,0,.04)}
+.fi input:focus{border-color:var(--acc);background:rgba(255,255,255,.9);box-shadow:0 0 0 3px rgba(204,120,92,.14)}
+.btn-login{width:100%;padding:.78rem;margin-top:.5rem;border-radius:var(--rm);border:none;background:linear-gradient(145deg,#cc785c,#b5611d);color:white;font-family:var(--font);font-size:.9rem;font-weight:500;cursor:pointer;box-shadow:0 2px 8px rgba(181,97,29,.36),inset 0 1px 0 rgba(255,255,255,.25);transition:all .18s}
+.btn-login:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(181,97,29,.46)}
+.lerr{font-size:.82rem;color:var(--err);text-align:center;min-height:1.2em;margin-top:.75rem;font-weight:500}
+.qacc{margin-top:1.75rem;padding-top:1.5rem;border-top:1px solid var(--border-lt)}
+.qacc p{font-size:.7rem;color:var(--txt3);text-align:center;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem}
+.qpills{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}
+.qpill{padding:.28rem .85rem;border-radius:20px;font-size:.73rem;font-weight:500;cursor:pointer;border:1px solid;transition:all .15s}
+.qp-a{background:rgba(204,120,92,.1);border-color:rgba(204,120,92,.3);color:var(--acc)}
+.qp-c{background:rgba(26,127,90,.1);border-color:rgba(26,127,90,.3);color:var(--ok)}
+.qp-cl{background:rgba(26,95,168,.1);border-color:rgba(26,95,168,.3);color:var(--inf)}
+.qpill:hover{transform:scale(1.06)}
+
+/* APP */
+#scr-app{display:none;min-height:100vh;position:relative;z-index:1}
+.layout{display:flex;min-height:100vh}
+.sb{width:228px;min-height:100vh;padding:1.25rem .875rem;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;background:rgba(245,242,238,.8);backdrop-filter:blur(var(--blur-l)) saturate(1.8);-webkit-backdrop-filter:blur(var(--blur-l)) saturate(1.8);border-right:1px solid rgba(255,255,255,.72);box-shadow:inset -1px 0 0 rgba(0,0,0,.04)}
+.sb-logo{display:flex;align-items:center;gap:8px;padding:.375rem .5rem 1.25rem}
+.sb-logo-ic{width:28px;height:28px;border-radius:7px;background:linear-gradient(145deg,#d4845a,#c0603a);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(192,96,58,.3),inset 0 1px 0 rgba(255,255,255,.3)}
+.sb-logo-ic svg{width:14px;height:14px;fill:white}
+.sb-logo-nm{font-size:.95rem;font-weight:600;letter-spacing:-.03em}
+.nav-lbl{font-size:.63rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3);padding:.5rem .5rem .25rem}
+.nb{display:flex;align-items:center;gap:.6rem;padding:.55rem .6rem;border-radius:var(--rs);cursor:pointer;transition:all .15s;color:var(--txt2);font-size:.845rem;font-weight:400;user-select:none;border:1px solid transparent}
+.nb:hover{background:rgba(255,255,255,.62);color:var(--txt);border-color:rgba(255,255,255,.82);box-shadow:0 1px 3px rgba(0,0,0,.05),inset 0 1px 0 rgba(255,255,255,.72)}
+.nb.on{background:rgba(255,255,255,.82);color:var(--txt);font-weight:500;border-color:rgba(255,255,255,.92);box-shadow:0 1px 4px rgba(0,0,0,.07),inset 0 1px 0 rgba(255,255,255,.92)}
+.nb svg{width:16px;height:16px;flex-shrink:0;opacity:.6;transition:opacity .15s}
+.nb:hover svg,.nb.on svg{opacity:1}
+.sb-foot{margin-top:auto;padding-top:1rem;border-top:1px solid var(--border-lt)}
+.urow{display:flex;align-items:center;gap:.6rem;padding:.5rem;border-radius:var(--rs);cursor:pointer;transition:all .15s}
+.urow:hover{background:rgba(255,255,255,.52)}
+.av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0;border:1.5px solid rgba(255,255,255,.85);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.av0{background:rgba(204,120,92,.16);color:#a0501c}.av1{background:rgba(26,127,90,.13);color:#0d6644}
+.av2{background:rgba(26,95,168,.13);color:#0d4fa0}.av3{background:rgba(154,98,0,.13);color:#7a4d00}
+.av4{background:rgba(130,60,180,.13);color:#6a1fa8}.av5{background:rgba(192,57,43,.13);color:#8b1a10}
+.uinf{flex:1;min-width:0}
+.uname-s{font-size:.825rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rpill{display:inline-block;font-size:.6rem;font-weight:700;padding:.1rem .5rem;border-radius:20px;letter-spacing:.05em;text-transform:uppercase;margin-top:1px}
+.rp-admin{background:rgba(204,120,92,.14);color:var(--acc)}.rp-ctrl{background:rgba(26,127,90,.12);color:var(--ok)}.rp-client{background:rgba(26,95,168,.12);color:var(--inf)}
+.btn-logout{width:100%;margin-top:.5rem;padding:.5rem .75rem;border-radius:var(--rs);font-family:var(--font);font-size:.78rem;font-weight:500;cursor:pointer;background:transparent;border:1px solid transparent;color:var(--txt3);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:.4rem}
+.btn-logout:hover{background:rgba(192,57,43,.07);border-color:rgba(192,57,43,.15);color:var(--err)}
+
+/* MAIN */
+.main{flex:1;padding:2rem 2.25rem;overflow-y:auto;max-width:1100px}
+.panel{display:none}.panel.on{display:block;animation:slideIn .24s var(--ease)}
+@keyframes slideIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.ph{margin-bottom:1.75rem}.ph-t{font-size:1.5rem;font-weight:600;letter-spacing:-.04em}
+.ph-s{color:var(--txt2);font-size:.855rem;margin-top:.25rem;line-height:1.5}
+
+/* STATS */
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.875rem;margin-bottom:1.5rem}
+.sc{padding:1.2rem 1.375rem;border-radius:var(--rl);border:1px solid rgba(255,255,255,.82);background:rgba(255,255,255,.65);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);box-shadow:var(--sh);position:relative;overflow:hidden}
+.sc::before{content:'';position:absolute;inset:0;background:var(--spec);opacity:.5;pointer-events:none}
+.sc-l{font-size:.7rem;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem}
+.sc-v{font-size:1.85rem;font-weight:600;letter-spacing:-.05em;line-height:1}
+
+/* TABLE */
+.tw{border-radius:var(--rl);overflow:hidden;border:1px solid var(--gs2);background:rgba(255,255,255,.5);backdrop-filter:blur(var(--blur-m));-webkit-backdrop-filter:blur(var(--blur-m));box-shadow:var(--sh)}
+table{width:100%;border-collapse:collapse;font-size:.845rem}
+thead tr{background:rgba(255,255,255,.78)}
+th{padding:.8rem 1.1rem;text-align:left;font-size:.67rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--txt3);border-bottom:1px solid var(--border-lt)}
+td{padding:.85rem 1.1rem;border-bottom:1px solid rgba(0,0,0,.03);color:var(--txt);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr{transition:background .12s}
+tbody tr:hover{background:rgba(255,255,255,.52)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.48rem 1rem;border-radius:var(--rs);font-family:var(--font);font-size:.815rem;font-weight:500;cursor:pointer;transition:all .15s;border:1px solid;letter-spacing:-.01em;position:relative;overflow:hidden}
+.btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.32) 0%,transparent 60%);pointer-events:none}
+.btn-p{background:linear-gradient(145deg,#cc785c,#b5611d);border-color:transparent;color:white;box-shadow:0 1.5px 6px rgba(181,97,29,.3),inset 0 1px 0 rgba(255,255,255,.25)}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(181,97,29,.42)}
+.btn-g{background:rgba(255,255,255,.72);border-color:rgba(0,0,0,.1);color:var(--txt);backdrop-filter:blur(8px);box-shadow:0 1px 3px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.82)}
+.btn-g:hover{background:rgba(255,255,255,.92);transform:translateY(-1px)}
+.btn-d{background:rgba(192,57,43,.08);border-color:rgba(192,57,43,.2);color:var(--err)}
+.btn-d:hover{background:rgba(192,57,43,.14)}
+.btn-sm{padding:.3rem .65rem;font-size:.75rem;border-radius:8px}
+
+/* TAGS */
+.tag{display:inline-flex;align-items:center;font-size:.7rem;font-weight:600;padding:.18rem .6rem;border-radius:20px;letter-spacing:.03em}
+.t-ok{background:var(--ok-b);color:var(--ok)}.t-warn{background:var(--warn-b);color:var(--warn)}
+.t-err{background:var(--err-b);color:var(--err)}.t-inf{background:var(--inf-b);color:var(--inf)}
+.t-neu{background:rgba(0,0,0,.06);color:var(--txt2)}
+
+/* HELPERS */
+.row{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+.btwn{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;margin-bottom:1.125rem}
+.sect{font-size:.925rem;font-weight:600;letter-spacing:-.02em}
+.divider{height:1px;background:var(--border-lt);margin:1.5rem 0}
+.t2{color:var(--txt2);font-size:.825rem}.t3{color:var(--txt3);font-size:.775rem}
+
+/* TIMELINE */
+.tl{list-style:none;position:relative;padding:0}
+.tl::before{content:'';position:absolute;left:12px;top:0;bottom:0;width:1.5px;background:var(--border);border-radius:2px}
+.tli{position:relative;padding:0 0 1.25rem 38px}
+.tld{position:absolute;left:5px;top:3px;width:15px;height:15px;border-radius:50%;border:2.5px solid white;z-index:1}
+.tl-done .tld{background:var(--ok);box-shadow:0 0 0 1.5px var(--ok)}
+.tl-current .tld{background:var(--acc);box-shadow:0 0 0 3px rgba(204,120,92,.22)}
+.tl-todo .tld{background:var(--border);box-shadow:0 0 0 1.5px var(--border)}
+.tl-t{font-size:.875rem;font-weight:500}.tl-s{font-size:.8rem;color:var(--txt2);margin-top:.2rem}
+
+/* PROGRESS */
+.prog{height:5px;background:var(--border);border-radius:6px;overflow:hidden;margin:.75rem 0}
+.prog-b{height:100%;background:linear-gradient(90deg,var(--acc),#e8a87c);border-radius:6px;transition:width .5s var(--ease)}
+
+/* MODALS */
+.mbg{display:none;position:fixed;inset:0;z-index:800;background:rgba(10,8,5,.38);backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);align-items:center;justify-content:center}
+.mbg.on{display:flex;animation:fbg .2s}
+@keyframes fbg{from{opacity:0}to{opacity:1}}
+.modal{width:100%;max-width:500px;border-radius:var(--rxl);padding:2rem;animation:mpop .3s var(--spring)}
+.modal.wide{max-width:660px}
+@keyframes mpop{from{opacity:0;transform:scale(.93) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-h{font-size:1.05rem;font-weight:600;letter-spacing:-.03em;margin-bottom:1.5rem}
+.mfoot{display:flex;gap:.625rem;justify-content:flex-end;margin-top:1.5rem}
+.mf{margin-bottom:.95rem}
+.mf label{display:block;font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt3);margin-bottom:.375rem}
+.mf input,.mf select,.mf textarea{width:100%;padding:.6rem .875rem;border-radius:var(--rs);border:1px solid var(--border);background:rgba(255,255,255,.65);backdrop-filter:blur(8px);font-family:var(--font);font-size:.875rem;color:var(--txt);outline:none;transition:all .15s;box-shadow:inset 0 1px 2px rgba(0,0,0,.03)}
+.mf input:focus,.mf select:focus,.mf textarea:focus{border-color:var(--acc);background:rgba(255,255,255,.92);box-shadow:0 0 0 3px rgba(204,120,92,.13)}
+.mf select option{background:#faf9f7}
+.mf textarea{resize:vertical;min-height:80px;line-height:1.5}
+
+/* ── PROMPT BOX (nouvelle approche questionnaire) ── */
+.prompt-box{border-radius:var(--rl);padding:1.25rem 1.375rem;background:linear-gradient(135deg,rgba(255,248,242,.9),rgba(255,255,255,.7));border:1px solid rgba(204,120,92,.22);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:var(--sh);margin-bottom:1.25rem}
+.prompt-box-h{display:flex;align-items:center;gap:.6rem;font-size:.855rem;font-weight:600;color:var(--acc);margin-bottom:.875rem}
+.prompt-box-h svg{width:17px;height:17px;flex-shrink:0}
+.prompt-steps{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem}
+.pstep{display:flex;align-items:flex-start;gap:.625rem;font-size:.825rem;color:var(--txt2);line-height:1.45}
+.pstep-num{width:20px;height:20px;border-radius:50%;background:var(--acc);color:white;font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.05rem}
+.prompt-code{background:rgba(26,25,21,.92);border-radius:var(--rm);padding:1rem 1.25rem;position:relative;overflow:hidden;margin:.875rem 0}
+.prompt-code pre{font-family:var(--mono);font-size:.78rem;color:#e8dcc8;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+.copy-btn{position:absolute;top:.625rem;right:.625rem;padding:.28rem .65rem;border-radius:var(--rs);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);font-size:.7rem;font-weight:500;cursor:pointer;font-family:var(--font);transition:all .15s}
+.copy-btn:hover{background:rgba(255,255,255,.18);color:white}
+.paste-area{width:100%;padding:.7rem 1rem;min-height:90px;resize:vertical;border-radius:var(--rs);border:1px solid rgba(204,120,92,.3);background:rgba(255,255,255,.62);font-family:var(--mono);font-size:.78rem;color:var(--txt);outline:none;line-height:1.55;transition:all .15s}
+.paste-area:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(204,120,92,.13);background:rgba(255,255,255,.92)}
+.paste-status{font-size:.78rem;margin-top:.4rem;min-height:1em;font-weight:500}
+.ps-ok{color:var(--ok)}.ps-err{color:var(--err)}.ps-idle{color:var(--txt3);font-style:italic}
+
+/* QUESTIONNAIRE RENDERER */
+.qcard{border-radius:var(--rl);padding:1.25rem 1.5rem;margin-bottom:.875rem;background:rgba(255,255,255,.66);border:1px solid rgba(255,255,255,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:var(--sh);transition:background .15s}
+.qcard:hover{background:rgba(255,255,255,.82)}
+.q-num{font-size:.67rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--txt3);margin-bottom:.35rem}
+.q-q{font-size:.93rem;font-weight:500;margin-bottom:.875rem;color:var(--txt);line-height:1.45}
+.qcard input[type=text],.qcard textarea{width:100%;padding:.55rem .875rem;border-radius:var(--rs);border:1px solid var(--border);background:rgba(255,255,255,.62);font-family:var(--font);font-size:.875rem;color:var(--txt);outline:none;transition:all .15s}
+.qcard input:focus,.qcard textarea:focus{border-color:var(--acc);background:rgba(255,255,255,.92);box-shadow:0 0 0 3px rgba(204,120,92,.12)}
+.qcard textarea{resize:vertical;min-height:68px;line-height:1.5}
+.qopts{display:flex;flex-direction:column;gap:.45rem}
+.qopt{display:flex;align-items:center;gap:.65rem;padding:.55rem .875rem;border-radius:var(--rs);border:1px solid var(--border);background:rgba(255,255,255,.52);cursor:pointer;transition:all .15s;font-size:.875rem}
+.qopt:hover{background:rgba(255,255,255,.88);border-color:rgba(204,120,92,.3)}
+.qopt input{width:15px;height:15px;accent-color:var(--acc);flex-shrink:0}
+.qopt.sel{background:rgba(204,120,92,.07);border-color:rgba(204,120,92,.38)}
+.qscale{display:flex;gap:.45rem;flex-wrap:wrap}
+.qsb{width:42px;height:42px;border-radius:var(--rs);border:1px solid var(--border);background:rgba(255,255,255,.52);cursor:pointer;font-size:.875rem;font-weight:500;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.qsb:hover{background:rgba(255,255,255,.88)}
+.qsb.sel{background:var(--acc);border-color:var(--acc);color:white;box-shadow:0 2px 8px rgba(204,120,92,.3)}
+
+/* DOC ITEM */
+.ditem{display:flex;align-items:center;gap:.875rem;padding:1rem 1.25rem;border-radius:var(--rm);margin-bottom:.625rem;background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:var(--sh);transition:background .15s}
+.ditem:hover{background:rgba(255,255,255,.82)}
+.dic{width:36px;height:36px;border-radius:var(--rs);background:rgba(204,120,92,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dm{flex:1;min-width:0}.dn{font-size:.875rem;font-weight:500}
+.dd{font-size:.75rem;color:var(--txt3);margin-top:.15rem}
+
+/* PROFILE */
+.pgrid{display:grid;grid-template-columns:240px 1fr;gap:1.25rem}
+.pside{text-align:center}
+.pava{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.55rem;font-weight:700;margin:0 auto .875rem;border:2.5px solid rgba(255,255,255,.88);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+
+/* READONLY */
+.ro{display:flex;align-items:center;gap:.5rem;padding:.6rem .875rem;border-radius:var(--rs);background:var(--warn-b);border:1px solid rgba(154,98,0,.15);color:var(--warn);font-size:.8rem;font-weight:500;margin-bottom:1.125rem}
+
+/* LOADING OVERLAY */
+#loading{position:fixed;inset:0;z-index:999;background:rgba(250,249,247,.85);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem}
+.spin{width:32px;height:32px;border:2.5px solid var(--border);border-top-color:var(--acc);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading p{font-size:.875rem;color:var(--txt2);font-weight:500}
+
+/* TOAST */
+#toasts{position:fixed;bottom:1.25rem;right:1.25rem;z-index:999;display:flex;flex-direction:column;gap:.45rem}
+.toast{padding:.65rem 1.1rem;border-radius:var(--rm);font-size:.835rem;font-weight:500;border:1px solid;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:var(--sh-r);animation:tin .28s var(--spring);max-width:320px}
+@keyframes tin{from{opacity:0;transform:translateX(18px) scale(.94)}to{opacity:1;transform:translateX(0) scale(1)}}
+.t-ok2{background:rgba(255,255,255,.9);border-color:rgba(26,127,90,.2);color:var(--ok)}
+.t-err2{background:rgba(255,255,255,.9);border-color:rgba(192,57,43,.2);color:var(--err)}
+.t-inf2{background:rgba(255,255,255,.9);border-color:rgba(26,95,168,.2);color:var(--inf)}
+.slnk{color:var(--inf);font-size:.82rem;text-decoration:none}.slnk:hover{text-decoration:underline}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(0,0,0,.1);border-radius:4px}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="spin"></div>
+  <p>Connexion au serveur…</p>
+</div>
+
+<!-- LOGIN -->
+<div id="scr-login" style="display:none">
+  <div class="lbox gl-d">
+    <div class="lmark">
+      <div class="lmark-ic"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+      <span class="lmark-nm">ProjectFlow</span>
+    </div>
+    <div class="lh">Bienvenue</div>
+    <div class="lsub">Espace privé — accès réservé aux membres autorisés.</div>
+    <div class="fi"><label>Identifiant</label><input id="li-u" type="text" placeholder="Nom d'utilisateur" autocomplete="username"></div>
+    <div class="fi"><label>Mot de passe</label><input id="li-p" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+    <button class="btn-login" onclick="doLogin()">Se connecter</button>
+    <div class="lerr" id="li-err"></div>
+    <div class="qacc">
+      <p>Connexion rapide</p>
+      <div class="qpills">
+        <button class="qpill qp-a" onclick="ql('Sacha','$mila2012')">Admin — Sacha</button>
+        <button class="qpill qp-c" onclick="ql('Alexis','0000')">Contrôleur — Alexis</button>
+        <button class="qpill qp-cl" onclick="ql('Marie','client123')">Client — Marie</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="scr-app">
+  <div class="layout">
+    <nav class="sb">
+      <div class="sb-logo">
+        <div class="sb-logo-ic"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+        <span class="sb-logo-nm">ProjectFlow</span>
+      </div>
+      <div id="sb-nav"></div>
+      <div class="sb-foot">
+        <div class="urow" onclick="go('profil')">
+          <div class="av" id="sb-av"></div>
+          <div class="uinf"><div class="uname-s" id="sb-nm"></div><span class="rpill" id="sb-rp"></span></div>
+        </div>
+        <button class="btn-logout" onclick="doLogout()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+          Déconnexion
+        </button>
+      </div>
+    </nav>
+    <main class="main">
+      <div class="panel" id="p-accueil"></div>
+      <div class="panel" id="p-utilisateurs"></div>
+      <div class="panel" id="p-suivi"></div>
+      <div class="panel" id="p-profil"></div>
+      <div class="panel" id="p-cl-home"></div>
+      <div class="panel" id="p-cl-docs"></div>
+      <div class="panel" id="p-cl-profil"></div>
+    </main>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="mbg" id="m-eu">
+  <div class="modal gl-d">
+    <div class="modal-h" id="m-eu-t">Modifier le compte</div>
+    <div id="m-eu-b"></div>
+    <div class="mfoot"><button class="btn btn-g" onclick="cm('m-eu')">Annuler</button><button class="btn btn-p" id="m-eu-sv">Enregistrer</button></div>
+  </div>
+</div>
+
+<div class="mbg" id="m-cu">
+  <div class="modal gl-d">
+    <div class="modal-h">Créer un compte</div>
+    <div class="mf"><label>Nom d'utilisateur</label><input type="text" id="cu-n"></div>
+    <div class="mf"><label>Prénom</label><input type="text" id="cu-f"></div>
+    <div class="mf"><label>Mot de passe</label><input type="password" id="cu-p"></div>
+    <div class="mf"><label>Rôle</label><select id="cu-r"></select></div>
+    <div class="mfoot"><button class="btn btn-g" onclick="cm('m-cu')">Annuler</button><button class="btn btn-p" onclick="createUser()">Créer</button></div>
+  </div>
+</div>
+
+<!-- MODAL QUESTIONNAIRE — Prompt + Paste JSON -->
+<div class="mbg" id="m-sq" style="align-items:flex-start;padding:1.5rem 0;overflow-y:auto">
+  <div class="modal wide gl-d" style="margin:auto">
+    <div class="modal-h">Créer et envoyer un questionnaire</div>
+    <div class="mf"><label>Client destinataire</label><select id="sq-cl"></select></div>
+    <div class="mf"><label>Titre du questionnaire</label><input type="text" id="sq-ti" placeholder="ex: Brief créatif — Phase 1"></div>
+
+    <div class="prompt-box">
+      <div class="prompt-box-h">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Étape 1 — Obtenir le questionnaire via Claude
+      </div>
+      <div class="prompt-steps">
+        <div class="pstep"><div class="pstep-num">1</div><span>Copiez le prompt ci-dessous et collez-le dans <strong>Claude.ai</strong> (ou votre Claude personnel).</span></div>
+        <div class="pstep"><div class="pstep-num">2</div><span>Personnalisez la dernière ligne avec votre description de questionnaire.</span></div>
+        <div class="pstep"><div class="pstep-num">3</div><span>Claude vous répondra avec un code JSON — collez-le dans la zone ci-dessous.</span></div>
+      </div>
+
+      <div class="prompt-code">
+        <button class="copy-btn" onclick="copyPrompt()">Copier</button>
+        <pre id="prompt-text">Tu es un générateur de questionnaires pour une agence web.
+Génère UNIQUEMENT un tableau JSON valide, sans markdown,
+sans backticks, sans texte avant ou après.
+
+Format de chaque question (choisis le type adapté) :
+- Court : {"id":1,"type":"short","question":"...","answer":""}
+- Long  : {"id":2,"type":"long","question":"...","answer":""}
+- Choix : {"id":3,"type":"mc","question":"...","options":["A","B","C"],"answer":""}
+- Échelle: {"id":4,"type":"scale","question":"...","min":1,"max":10,"answer":""}
+
+Règles :
+• Les IDs doivent être des entiers séquentiels (1, 2, 3…)
+• Chaque "answer" est toujours une chaîne vide ""
+• Retourne SEULEMENT le tableau JSON, rien d'autre
+
+Ma demande : [DÉCRIVEZ ICI VOTRE QUESTIONNAIRE — nombre de questions, sujets, types souhaités]</pre>
+      </div>
+    </div>
+
+    <div class="mf">
+      <label>Étape 2 — Collez le JSON généré par Claude ici</label>
+      <textarea class="paste-area" id="json-paste" placeholder='[{"id":1,"type":"short","question":"...","answer":""},...]' oninput="validateJSON()"></textarea>
+      <div class="paste-status ps-idle" id="paste-st">En attente du JSON…</div>
+    </div>
+
+    <div id="sq-prev" style="display:none;margin-top:.5rem">
+      <div class="mf" style="margin-bottom:.5rem"><label>Aperçu du questionnaire</label></div>
+      <div id="sq-prev-list" style="max-height:200px;overflow-y:auto;padding-right:4px"></div>
+    </div>
+
+    <div class="mfoot">
+      <button class="btn btn-g" onclick="cm('m-sq')">Annuler</button>
+      <button class="btn btn-p" onclick="sendQ()">Envoyer au client</button>
+    </div>
+  </div>
+</div>
+
+<div class="mbg" id="m-tl">
+  <div class="modal gl-d">
+    <div class="modal-h">Ajouter une étape</div>
+    <div class="mf"><label>Client</label><select id="tl-cl"></select></div>
+    <div class="mf"><label>Titre de l'étape</label><input type="text" id="tl-n" placeholder="ex: Validation maquettes"></div>
+    <div class="mf"><label>Détail (optionnel)</label><input type="text" id="tl-s"></div>
+    <div class="mf"><label>Statut</label>
+      <select id="tl-st"><option value="done">✅ Terminé</option><option value="current" selected>🔵 En cours</option><option value="todo">⬜ À faire</option></select>
+    </div>
+    <div class="mfoot"><button class="btn btn-g" onclick="cm('m-tl')">Annuler</button><button class="btn btn-p" onclick="addTl()">Ajouter</button></div>
+  </div>
+</div>
+
+<div class="mbg" id="m-fq" style="align-items:flex-start;padding:2rem 0;overflow-y:auto">
+  <div class="modal gl-d" style="max-width:620px;margin:auto">
+    <div class="modal-h" id="m-fq-t">Remplir le questionnaire</div>
+    <div id="m-fq-b"></div>
+    <div class="mfoot" style="position:sticky;bottom:0;background:rgba(255,255,255,.88);backdrop-filter:blur(8px);padding:.875rem 0 0;margin-top:.5rem">
+      <button class="btn btn-g" onclick="cm('m-fq')">Fermer</button>
+      <button class="btn btn-p" id="m-fq-sv">Envoyer mes réponses</button>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+/* ════════════════════════════════════════════
+   CONFIG
+════════════════════════════════════════════ */
+// Détecte si on tourne avec le serveur Flask ou en fichier local
+const API = (() => {
+  if (location.protocol === 'file:' || location.hostname === '') return null;
+  return `${location.protocol}//${location.hostname}:${location.port || 5000}/api`;
+})();
+
+/* ════════════════════════════════════════════
+   DATA LAYER — API Flask OU localStorage fallback
+════════════════════════════════════════════ */
+const SK = 'pf_v5';
+let DB = null;
+let ME = null;
+let pendingQ = null;
+
+function defDB() {
+  return {
+    users: [
+      {id:1,un:'Sacha',pw:'$mila2012',role:'admin',fn:'Sacha',ln:'Admin',email:'sacha@pf.fr',av:'SA',avi:0,joined:'2024-01-10'},
+      {id:2,un:'Alexis',pw:'0000',role:'controleur',fn:'Alexis',ln:'Martin',email:'alexis@pf.fr',av:'AM',avi:1,joined:'2024-02-15'},
+      {id:3,un:'Marie',pw:'client123',role:'client',fn:'Marie',ln:'Dupont',email:'marie@ex.fr',av:'MD',avi:3,joined:'2024-03-01',ps:'en cours',web:'https://marie-portfolio.fr'},
+      {id:4,un:'Thomas',pw:'pass456',role:'client',fn:'Thomas',ln:'Bernard',email:'thomas@ex.fr',av:'TB',avi:5,joined:'2024-04-10',ps:'en attente',web:''},
+      {id:5,un:'Sophie',pw:'soph789',role:'client',fn:'Sophie',ln:'Laurent',email:'sophie@ex.fr',av:'SL',avi:2,joined:'2024-02-20',ps:'terminé',web:'https://sophie-events.fr'},
+    ],
+    questionnaires: [
+      {id:101,title:'Brief créatif',cid:3,sentBy:1,sentAt:'2024-03-05',status:'pending',questions:[
+        {id:1,type:'short',question:"Quel est l'objectif principal de votre site ?",answer:''},
+        {id:2,type:'mc',question:'Votre cible principale ?',options:['Particuliers','Professionnels','Les deux'],answer:''},
+        {id:3,type:'scale',question:'Budget global (1=faible, 10=élevé)',min:1,max:10,answer:''},
+        {id:4,type:'long',question:"Citez 2–3 sites que vous admirez et expliquez pourquoi.",answer:''},
+      ]},
+    ],
+    timelines: {
+      '3':[{id:1,t:'Prise de contact',s:'Réunion effectuée',st:'done'},{id:2,t:'Maquettes',s:'3 versions validées',st:'done'},{id:3,t:'Développement',s:'Phase front en cours',st:'current'},{id:4,t:'Tests & Recette',s:'',st:'todo'},{id:5,t:'Mise en ligne',s:'',st:'todo'}],
+      '4':[{id:1,t:'Prise de contact',s:'',st:'current'},{id:2,t:'Devis',s:'',st:'todo'}],
+      '5':[{id:1,t:'Prise de contact',s:'',st:'done'},{id:2,t:'Maquettes',s:'Validées',st:'done'},{id:3,t:'Développement',s:'Terminé',st:'done'},{id:4,t:'Mise en ligne',s:'Déployé le 10/04',st:'done'}],
+    },
+    nid: 300
+  };
+}
+
+// Sauvegarde — API ou localStorage
+async function save() {
+  if (API) {
+    try {
+      await fetch(`${API}/db`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(DB)
+      });
+    } catch (e) { console.warn('[PF] Erreur sauvegarde API:', e); }
+  } else {
+    try { localStorage.setItem(SK, JSON.stringify(DB)); } catch(e) {}
+  }
+}
+
+// Chargement initial
+async function loadDB() {
+  if (API) {
+    try {
+      const r = await fetch(`${API}/db`);
+      if (r.ok) { DB = await r.json(); return; }
+    } catch (e) { console.warn('[PF] Serveur Flask non disponible, fallback localStorage'); }
+  }
+  // Fallback localStorage
+  try {
+    const raw = localStorage.getItem(SK);
+    DB = raw ? JSON.parse(raw) : defDB();
+  } catch { DB = defDB(); }
+}
+
+/* ════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════ */
+(async () => {
+  await loadDB();
+  g('loading').style.display = 'none';
+  g('scr-login').style.display = 'flex';
+})();
+
+/* ════════════════════════════════════════════
+   AUTH
+════════════════════════════════════════════ */
+function doLogin() {
+  const u = g('li-u').value.trim(), p = g('li-p').value;
+  const f = DB.users.find(x => x.un.toLowerCase() === u.toLowerCase() && x.pw === p);
+  if (!f) { g('li-err').textContent = u ? 'Accès refusé : Ceci est un site privé.' : 'Identifiant et mot de passe requis.'; g('li-p').value = ''; return; }
+  loginAs(f);
+}
+function ql(u, p) { g('li-u').value = u; g('li-p').value = p; doLogin(); }
+g('li-p').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+g('li-u').addEventListener('keydown', e => { if (e.key === 'Enter') g('li-p').focus(); });
+
+function loginAs(u) {
+  ME = u;
+  g('scr-login').style.display = 'none';
+  g('scr-app').style.display = 'block';
+  buildSB();
+  go(u.role === 'client' ? 'cl-home' : 'accueil');
+}
+function doLogout() {
+  ME = null;
+  g('scr-app').style.display = 'none';
+  g('scr-login').style.display = 'flex';
+  g('li-u').value = ''; g('li-p').value = ''; g('li-err').textContent = '';
+}
+
+/* ════════════════════════════════════════════
+   SIDEBAR
+════════════════════════════════════════════ */
+const iH = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
+const iU = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>`;
+const iD = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`;
+const iP = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+function nb(id, icon, lbl) { return `<div class="nb" id="nb-${id}" onclick="go('${id}')">${icon}<span>${lbl}</span></div>`; }
+
+function buildSB() {
+  const u = ME;
+  const av = g('sb-av');
+  av.textContent = u.av; av.className = `av av${u.avi % 6}`;
+  g('sb-nm').textContent = u.un;
+  const rp = g('sb-rp');
+  const rl = { admin: 'Admin', controleur: 'Contrôleur', client: 'Client' };
+  const rc = { admin: 'rp-admin', controleur: 'rp-ctrl', client: 'rp-client' };
+  rp.textContent = rl[u.role]; rp.className = `rpill ${rc[u.role]}`;
+  g('sb-nav').innerHTML = u.role !== 'client'
+    ? `<div class="nav-lbl">Menu</div>${nb('accueil',iH,'Accueil')}${nb('utilisateurs',iU,'Utilisateurs')}${nb('suivi',iD,'Suivi & Documents')}${nb('profil',iP,'Mon Profil')}`
+    : `<div class="nav-lbl">Menu</div>${nb('cl-home',iH,'Mon Projet')}${nb('cl-docs',iD,'Questionnaires')}${nb('cl-profil',iP,'Mon Profil')}`;
+}
+
+function go(id) {
+  document.querySelectorAll('.nb').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  const b = g(`nb-${id}`); if (b) b.classList.add('on');
+  const p = g(`p-${id}`); if (!p) return;
+  p.classList.add('on'); rp(id);
+}
+
+/* ════════════════════════════════════════════
+   RENDER
+════════════════════════════════════════════ */
+function rp(id) {
+  const m = { accueil: rAccueil, utilisateurs: rUsers, suivi: rSuivi, profil: rProfil, 'cl-home': rClHome, 'cl-docs': rClDocs, 'cl-profil': rClProfil };
+  (m[id] || function(){})();
+}
+
+/* ── ACCUEIL ── */
+function rAccueil() {
+  const clients = DB.users.filter(u => u.role === 'client');
+  const done = clients.filter(u => u.ps === 'terminé');
+  const actifs = clients.filter(u => u.ps !== 'terminé');
+  const pqs = DB.questionnaires.filter(q => q.status === 'pending').length;
+  const rqs = DB.questionnaires.filter(q => q.status === 'returned').length;
+  g('p-accueil').innerHTML = `
+    <div class="ph"><div class="ph-t">Tableau de bord</div><div class="ph-s">Bonjour ${ME.fn} · ${fmtD(new Date())}</div></div>
+    <div class="sgrid">
+      <div class="sc"><div class="sc-l">Clients</div><div class="sc-v">${clients.length}</div></div>
+      <div class="sc"><div class="sc-l">En attente</div><div class="sc-v" style="color:var(--warn)">${clients.filter(u=>u.ps==='en attente').length}</div></div>
+      <div class="sc"><div class="sc-l">Terminés</div><div class="sc-v" style="color:var(--ok)">${done.length}</div></div>
+      <div class="sc"><div class="sc-l">Questionnaires</div><div class="sc-v">${DB.questionnaires.length}</div></div>
+      <div class="sc"><div class="sc-l">Retournés</div><div class="sc-v" style="color:var(--inf)">${rqs}</div></div>
+      <div class="sc"><div class="sc-l">En attente</div><div class="sc-v" style="color:var(--warn)">${pqs}</div></div>
+    </div>
+    <div class="divider"></div>
+    <div class="btwn"><span class="sect">Clients actifs</span></div>
+    <div class="tw"><table>
+      <thead><tr><th>Client</th><th>Statut</th><th>Questionnaires</th><th>Site</th>${ME.role==='admin'?'<th></th>':''}</tr></thead>
+      <tbody>${actifs.map(u => {
+        const qs = DB.questionnaires.filter(q => q.cid === u.id);
+        const pq = qs.filter(q => q.status === 'pending').length;
+        return `<tr><td>${chip(u)}</td><td>${stag(u.ps)}</td><td><span class="tag ${pq?'t-warn':'t-ok'}">${qs.length} envoyé${qs.length!==1?'s':''} · ${pq} en attente</span></td><td>${u.web?`<a href="${u.web}" target="_blank" class="slnk">🔗 Voir</a>`:'<span class="t3">—</span>'}</td>${ME.role==='admin'?`<td><button class="btn btn-g btn-sm" onclick="openEU(${u.id})">Modifier</button></td>`:''}</tr>`;
+      }).join('') || '<tr><td colspan="5" style="text-align:center;padding:2rem" class="t3">Aucun client actif</td></tr>'}
+      </tbody>
+    </table></div>
+    <div class="divider"></div>
+    <div class="btwn"><span class="sect">Projets terminés</span></div>
+    <div class="tw"><table>
+      <thead><tr><th>Client</th><th>Site web</th><th>Depuis</th></tr></thead>
+      <tbody>${done.length ? done.map(u=>`<tr><td>${chip(u)}</td><td>${u.web?`<a href="${u.web}" target="_blank" class="slnk">${u.web}</a>`:'<span class="t3">—</span>'}</td><td class="t2">${u.joined}</td></tr>`).join('') : '<tr><td colspan="3" style="text-align:center;padding:2rem" class="t3">Aucun</td></tr>'}</tbody>
+    </table></div>`;
+}
+
+/* ── USERS ── */
+function rUsers() {
+  const isA = ME.role === 'admin';
+  g('p-utilisateurs').innerHTML = `
+    <div class="ph"><div class="ph-t">Utilisateurs</div><div class="ph-s">Gestion des comptes et permissions.</div></div>
+    ${!isA ? `<div class="ro"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Contrôleur — consultation uniquement. Vous pouvez créer des comptes Client.</div>` : ''}
+    <div class="btwn"><span class="sect">${DB.users.length} compte${DB.users.length!==1?'s':''}</span><button class="btn btn-p btn-sm" onclick="openCU()">+ Nouveau compte</button></div>
+    <div class="tw"><table>
+      <thead><tr><th>Utilisateur</th><th>Rôle</th><th>Email</th><th>Inscrit</th>${isA?'<th>Actions</th>':''}</tr></thead>
+      <tbody>${DB.users.map(u => `<tr><td>${chip(u)}</td><td>${rpill(u.role)}</td><td class="t2" style="font-size:.78rem">${u.email||'—'}</td><td class="t3">${u.joined||'—'}</td>${isA?`<td>${u.id!==ME.id?`<div style="display:flex;gap:.375rem"><button class="btn btn-g btn-sm" onclick="openEU(${u.id})">Modifier</button><button class="btn btn-d btn-sm" onclick="delUser(${u.id})">Suppr.</button></div>`:'<span class="t3">Vous</span>'}</td>`:''}</tr>`).join('')}
+      </tbody>
+    </table></div>`;
+}
+
+/* ── SUIVI ── */
+function rSuivi() {
+  const isA = ME.role === 'admin';
+  const clients = DB.users.filter(u => u.role === 'client');
+  g('p-suivi').innerHTML = `
+    <div class="ph"><div class="ph-t">Suivi & Documents</div><div class="ph-s">Questionnaires et timelines clients.</div></div>
+    ${!isA ? `<div class="ro"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Contrôleur — visualisation uniquement.</div>` : ''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem">
+      <div>
+        <div class="btwn"><span class="sect">Questionnaires</span>${isA ? `<button class="btn btn-p btn-sm" onclick="openSQ()">+ Créer</button>` : ''}</div>
+        ${DB.questionnaires.length === 0 ? '<p class="t3" style="padding:.5rem 0">Aucun questionnaire.</p>' : DB.questionnaires.map(q => {
+          const cl = DB.users.find(u => u.id === q.cid);
+          const ans = q.questions.filter(x => x.answer && x.answer !== '').length;
+          return `<div class="ditem">
+            <div class="dic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="1.75"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg></div>
+            <div class="dm"><div class="dn">${q.title}</div><div class="dd">→ ${cl ? cl.fn+' '+cl.ln : '?'} · ${q.sentAt} · ${ans}/${q.questions.length} rép.</div></div>
+            ${isA ? `<button class="btn btn-d btn-sm" onclick="delQ(${q.id})" title="Supprimer">✕</button>` : ''}
+            <span class="tag ${q.status==='returned'?'t-ok':'t-warn'}">${q.status==='returned'?'Retourné':'En attente'}</span>
+          </div>`;
+        }).join('')}
+      </div>
+      <div>
+        <div class="btwn"><span class="sect">Timelines</span>${isA ? `<button class="btn btn-g btn-sm" onclick="openTL()">+ Étape</button>` : ''}</div>
+        ${clients.map(c => {
+          const tl = (DB.timelines[String(c.id)] || []);
+          const d = tl.filter(s => s.st === 'done').length;
+          const pct = tl.length ? Math.round(d / tl.length * 100) : 0;
+          return `<div class="gl-r card" style="margin-bottom:.875rem">
+            <div class="row" style="margin-bottom:.5rem">
+              <div class="av av${c.avi%6}" style="width:26px;height:26px;font-size:.67rem">${c.av}</div>
+              <span style="font-size:.855rem;font-weight:500">${c.fn} ${c.ln}</span>
+              <span class="t3" style="margin-left:auto">${pct}%</span>
+            </div>
+            <div class="prog"><div class="prog-b" style="width:${pct}%"></div></div>
+            <ul class="tl" style="margin-top:.75rem">
+              ${tl.map(s=>`<li class="tli tl-${s.st}"><div class="tld"></div><div class="tl-t">${s.t}</div>${s.s?`<div class="tl-s">${s.s}</div>`:''}</li>`).join('')}
+              ${!tl.length ? '<li class="tli tl-todo"><div class="tld"></div><div class="tl-t t3">Aucune étape</div></li>' : ''}
+            </ul>
+            ${isA ? `<button class="btn btn-g btn-sm" style="margin-top:.75rem" onclick="openTLfor(${c.id})">+ Étape</button>` : ''}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+/* ── PROFIL ADMIN/CTRL ── */
+function rProfil() {
+  const u = ME;
+  g('p-profil').innerHTML = `
+    <div class="ph"><div class="ph-t">Mon Profil</div><div class="ph-s">Vos informations personnelles.</div></div>
+    <div class="pgrid">
+      <div class="gl-r card pside">
+        <div class="pava av${u.avi%6}">${u.av}</div>
+        <div style="font-weight:600">${u.fn} ${u.ln}</div>
+        <div class="t3" style="margin:.2rem 0 .75rem">@${u.un}</div>
+        ${rpill(u.role)}<div class="divider" style="margin:.875rem 0"></div>
+        <div class="t3">Membre depuis ${u.joined}</div>
+      </div>
+      <div class="gl-r card">
+        <div style="font-size:.875rem;font-weight:600;margin-bottom:1.125rem">Modifier mes informations</div>
+        <div class="mf"><label>Prénom</label><input id="pf-fn" value="${u.fn}"></div>
+        <div class="mf"><label>Nom</label><input id="pf-ln" value="${u.ln}"></div>
+        <div class="mf"><label>Nom d'utilisateur</label><input id="pf-un" value="${u.un}"></div>
+        <div class="mf"><label>Email</label><input id="pf-em" value="${u.email||''}"></div>
+        <div class="mf"><label>Nouveau mot de passe <span class="t3">(vide = inchangé)</span></label><input type="password" id="pf-pw"></div>
+        <button class="btn btn-p" style="margin-top:1rem" onclick="saveProfil()">Enregistrer</button>
+      </div>
+    </div>`;
+}
+function saveProfil() {
+  const u = ME;
+  const fn = v('pf-fn').trim(), ln = v('pf-ln').trim(), un = v('pf-un').trim(), em = v('pf-em').trim(), pw = v('pf-pw');
+  if (!un) { toast('Nom d\'utilisateur requis.', 'err'); return; }
+  if (un !== u.un && DB.users.find(x => x.un.toLowerCase() === un.toLowerCase())) { toast('Pseudo déjà pris.', 'err'); return; }
+  u.fn = fn || u.fn; u.ln = ln || u.ln; u.un = un; u.email = em;
+  u.av = ((fn || '?')[0] + (un || '?')[0]).toUpperCase();
+  if (pw) u.pw = pw;
+  save(); buildSB(); rProfil(); toast('Profil mis à jour.', 'ok');
+}
+
+/* ── CLIENT HOME ── */
+function rClHome() {
+  const u = ME;
+  const tl = (DB.timelines[String(u.id)] || []);
+  const d = tl.filter(s => s.st === 'done').length;
+  const pct = tl.length ? Math.round(d / tl.length * 100) : 0;
+  g('p-cl-home').innerHTML = `
+    <div class="ph"><div class="ph-t">Mon Projet</div><div class="ph-s">Bonjour ${u.fn} — état d'avancement de votre projet.</div></div>
+    <div class="sgrid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="sc"><div class="sc-l">Avancement</div><div class="sc-v">${pct}%</div></div>
+      <div class="sc"><div class="sc-l">Étapes</div><div class="sc-v">${d}/${tl.length}</div></div>
+      <div class="sc"><div class="sc-l">Statut</div><div style="margin-top:.5rem">${stag(u.ps||'en attente')}</div></div>
+    </div>
+    ${u.web ? `<div class="gl-r card row" style="gap:1rem;margin-bottom:1.25rem">
+      <div class="dic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></div>
+      <div><div style="font-weight:500;font-size:.875rem;margin-bottom:.15rem">Votre site web</div><a href="${u.web}" target="_blank" class="slnk">${u.web}</a></div>
+    </div>` : ''}
+    <div class="btwn"><span class="sect">Timeline</span></div>
+    <div class="gl-r card">
+      <div class="prog" style="margin-bottom:1.25rem"><div class="prog-b" style="width:${pct}%"></div></div>
+      ${tl.length ? `<ul class="tl">${tl.map(s=>`<li class="tli tl-${s.st}"><div class="tld"></div><div class="tl-t">${s.t}</div>${s.s?`<div class="tl-s">${s.s}</div>`:''}</li>`).join('')}</ul>`
+        : '<p class="t3" style="text-align:center;padding:1.5rem 0">Votre timeline sera complétée prochainement.</p>'}
+    </div>`;
+}
+
+/* ── CLIENT DOCS ── */
+function rClDocs() {
+  const myQ = DB.questionnaires.filter(q => q.cid === ME.id);
+  g('p-cl-docs').innerHTML = `
+    <div class="ph"><div class="ph-t">Mes Questionnaires</div><div class="ph-s">Répondez aux questionnaires envoyés par votre chargé de projet.</div></div>
+    ${myQ.length === 0 ? `<div class="gl-r card" style="text-align:center;padding:3rem">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.2;margin:0 auto 1rem;display:block"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <p class="t3">Aucun questionnaire pour le moment.</p>
+    </div>` : myQ.map(q => {
+      const ans = q.questions.filter(x => x.answer && x.answer !== '').length;
+      return `<div class="ditem" style="align-items:flex-start">
+        <div class="dic" style="margin-top:.1rem"><svg viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="1.75"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+        <div class="dm">
+          <div class="dn">${q.title}</div>
+          <div class="dd">Reçu le ${q.sentAt} · ${ans}/${q.questions.length} réponse${ans!==1?'s':''}</div>
+          <div style="margin-top:.625rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+            <span class="tag ${q.status==='returned'?'t-ok':'t-warn'}">${q.status==='returned'?'✓ Retourné':'En attente'}</span>
+            <button class="btn btn-p btn-sm" onclick="openFQ(${q.id})">${q.status==='returned'?'Voir mes réponses':'Remplir'}</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
+/* ── CLIENT PROFIL ── */
+function rClProfil() {
+  const u = ME;
+  g('p-cl-profil').innerHTML = `
+    <div class="ph"><div class="ph-t">Mon Profil</div></div>
+    <div class="pgrid">
+      <div class="gl-r card pside">
+        <div class="pava av${u.avi%6}">${u.av}</div>
+        <div style="font-weight:600">${u.fn} ${u.ln}</div>
+        <div class="t3" style="margin:.2rem 0 .75rem">@${u.un}</div>
+        <span class="tag t-inf">Client</span>
+        <div class="divider" style="margin:.875rem 0"></div>
+        <div class="t3">Depuis ${u.joined}</div>
+      </div>
+      <div class="gl-r card">
+        <div style="font-size:.875rem;font-weight:600;margin-bottom:1.125rem">Modifier mes informations</div>
+        <div class="mf"><label>Prénom</label><input id="cpf-fn" value="${u.fn}"></div>
+        <div class="mf"><label>Nom</label><input id="cpf-ln" value="${u.ln}"></div>
+        <div class="mf"><label>Pseudo</label><input id="cpf-un" value="${u.un}"></div>
+        <div class="mf"><label>Niveau d'accès</label><input value="Client" readonly style="opacity:.5;cursor:not-allowed"></div>
+        <div class="mf"><label>Nouveau mot de passe <span class="t3">(vide = inchangé)</span></label><input type="password" id="cpf-pw"></div>
+        <button class="btn btn-p" style="margin-top:1rem" onclick="saveClProfil()">Enregistrer</button>
+      </div>
+    </div>`;
+}
+function saveClProfil() {
+  const u = ME;
+  const fn = v('cpf-fn').trim(), ln = v('cpf-ln').trim(), un = v('cpf-un').trim(), pw = v('cpf-pw');
+  if (!un) { toast('Pseudo requis.', 'err'); return; }
+  if (un !== u.un && DB.users.find(x => x.un.toLowerCase() === un.toLowerCase())) { toast('Ce pseudo est déjà pris.', 'err'); return; }
+  u.fn = fn || u.fn; u.ln = ln || u.ln; u.un = un;
+  u.av = ((fn || '?')[0] + (un || '?')[0]).toUpperCase();
+  if (pw) u.pw = pw;
+  save(); buildSB(); rClProfil(); toast('Profil mis à jour.', 'ok');
+}
+
+/* ════════════════════════════════════════════
+   USER MANAGEMENT
+════════════════════════════════════════════ */
+function openCU() {
+  const roles = ME.role === 'admin' ? ['client','controleur','admin'] : ['client'];
+  g('cu-r').innerHTML = roles.map(r => `<option value="${r}">${r.charAt(0).toUpperCase()+r.slice(1)}</option>`).join('');
+  ['cu-n','cu-f','cu-p'].forEach(id => g(id).value = '');
+  om('m-cu');
+}
+async function createUser() {
+  const un = v('cu-n').trim(), fn = v('cu-f').trim(), pw = v('cu-p'), role = g('cu-r').value;
+  if (!un || !pw) { toast('Nom et mot de passe requis.', 'err'); return; }
+  if (DB.users.find(u => u.un.toLowerCase() === un.toLowerCase())) { toast('Pseudo déjà utilisé.', 'err'); return; }
+  const idx = DB.nid % 6;
+  const u = { id: DB.nid++, un, pw, role, fn: fn||un, ln:'', email:`${un.toLowerCase()}@client.fr`, av: ((fn||un)[0]+(un[1]||un[0])).toUpperCase(), avi: idx, joined: tod(), ps:'en attente', web:'' };
+  DB.users.push(u);
+  if (role === 'client') DB.timelines[String(u.id)] = [];
+  await save(); cm('m-cu'); rUsers(); toast(`Compte @${un} créé.`, 'ok');
+}
+function openEU(id) {
+  const u = DB.users.find(x => x.id === id); if (!u) return;
+  const isA = ME.role === 'admin';
+  g('m-eu-t').textContent = `Modifier — ${u.fn} ${u.ln}`;
+  g('m-eu-b').innerHTML = `
+    <div class="mf"><label>Prénom</label><input id="eu-fn" value="${u.fn||''}"></div>
+    <div class="mf"><label>Nom</label><input id="eu-ln" value="${u.ln||''}"></div>
+    <div class="mf"><label>Email</label><input id="eu-em" value="${u.email||''}"></div>
+    <div class="mf"><label>Site web</label><input id="eu-web" value="${u.web||''}" placeholder="https://..."></div>
+    ${isA && u.id !== ME.id ? `
+    <div class="mf"><label>Rôle</label><select id="eu-role"><option value="client" ${u.role==='client'?'selected':''}>Client</option><option value="controleur" ${u.role==='controleur'?'selected':''}>Contrôleur</option><option value="admin" ${u.role==='admin'?'selected':''}>Admin</option></select></div>
+    <div class="mf"><label>Statut projet</label><select id="eu-ps"><option value="en attente" ${(u.ps||'')==='en attente'?'selected':''}>En attente</option><option value="en cours" ${u.ps==='en cours'?'selected':''}>En cours</option><option value="terminé" ${u.ps==='terminé'?'selected':''}>Terminé</option></select></div>
+    ` : ''}
+    <div class="mf"><label>Nouveau mot de passe <span class="t3">(vide = inchangé)</span></label><input type="password" id="eu-pw"></div>`;
+  g('m-eu-sv').onclick = async () => {
+    u.fn = v('eu-fn') || u.fn; u.ln = v('eu-ln') || u.ln; u.email = v('eu-em') || u.email; u.web = v('eu-web');
+    u.av = ((u.fn||'?')[0] + (u.ln||u.un||'?')[0]).toUpperCase();
+    if (isA && u.id !== ME.id) { u.role = g('eu-role').value; u.ps = g('eu-ps').value; }
+    const pw = v('eu-pw'); if (pw) u.pw = pw;
+    await save(); cm('m-eu'); rp(ME.role === 'client' ? 'cl-home' : 'utilisateurs'); toast('Mis à jour.', 'ok');
+  };
+  om('m-eu');
+}
+async function delUser(id) {
+  if (id === ME.id) { toast('Impossible de supprimer votre propre compte.', 'err'); return; }
+  const u = DB.users.find(x => x.id === id);
+  if (!confirm(`Supprimer @${u.un} ? Action irréversible.`)) return;
+  DB.users = DB.users.filter(x => x.id !== id);
+  await save(); rUsers(); toast(`@${u.un} supprimé.`, 'info');
+}
+
+/* ════════════════════════════════════════════
+   QUESTIONNAIRES — Prompt + Paste JSON
+════════════════════════════════════════════ */
+function openSQ() {
+  const clients = DB.users.filter(u => u.role === 'client');
+  g('sq-cl').innerHTML = clients.map(c => `<option value="${c.id}">${c.fn} ${c.ln}</option>`).join('');
+  g('sq-ti').value = ''; g('json-paste').value = '';
+  g('paste-st').textContent = 'En attente du JSON…'; g('paste-st').className = 'paste-status ps-idle';
+  g('sq-prev').style.display = 'none';
+  pendingQ = null;
+  om('m-sq');
+}
+
+function copyPrompt() {
+  const txt = g('prompt-text').textContent;
+  navigator.clipboard.writeText(txt).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✓ Copié !';
+    setTimeout(() => { btn.textContent = 'Copier'; }, 2000);
+  });
+}
+
+function validateJSON() {
+  const raw = g('json-paste').value.trim();
+  const st = g('paste-st');
+  if (!raw) { st.textContent = 'En attente du JSON…'; st.className = 'paste-status ps-idle'; pendingQ = null; g('sq-prev').style.display = 'none'; return; }
+  try {
+    const clean = raw.replace(/```json|```/gi, '').trim();
+    const qs = JSON.parse(clean);
+    if (!Array.isArray(qs) || qs.length === 0) throw new Error('Le JSON doit être un tableau non vide.');
+    // Validate structure
+    qs.forEach((q, i) => {
+      if (!q.question) throw new Error(`Question ${i+1} : champ "question" manquant.`);
+      if (!['short','long','mc','scale'].includes(q.type)) throw new Error(`Question ${i+1} : type "${q.type}" invalide.`);
+      if (q.type === 'mc' && (!Array.isArray(q.options) || q.options.length < 2)) throw new Error(`Question ${i+1} : "options" requis pour type mc.`);
+      q.id = i + 1; q.answer = q.answer || '';
+    });
+    pendingQ = qs;
+    st.textContent = `✓ ${qs.length} question${qs.length!==1?'s':''} valide${qs.length!==1?'s':''}`;
+    st.className = 'paste-status ps-ok';
+    // Preview
+    g('sq-prev').style.display = 'block';
+    g('sq-prev-list').innerHTML = qs.map((q,i) => `
+      <div style="padding:.5rem .875rem;border-radius:var(--rs);background:rgba(255,255,255,.52);border:1px solid var(--border);margin-bottom:.375rem">
+        <div class="t3" style="font-weight:700;text-transform:uppercase;font-size:.63rem;letter-spacing:.08em;margin-bottom:.2rem">Q${i+1} · ${q.type}</div>
+        <div style="font-size:.835rem;font-weight:500">${q.question}</div>
+        ${q.options ? `<div class="t3" style="margin-top:.2rem;font-size:.73rem">${q.options.join(' · ')}</div>` : ''}
+      </div>`).join('');
+  } catch (e) {
+    pendingQ = null;
+    st.textContent = `✗ ${e.message}`;
+    st.className = 'paste-status ps-err';
+    g('sq-prev').style.display = 'none';
+  }
+}
+
+async function sendQ() {
+  const cid = parseInt(g('sq-cl').value);
+  const title = v('sq-ti').trim();
+  if (!title) { toast('Titre requis.', 'err'); return; }
+  if (!pendingQ || !pendingQ.length) { toast('Collez un JSON valide généré par Claude.', 'err'); return; }
+  DB.questionnaires.push({ id: DB.nid++, title, cid, sentBy: ME.id, sentAt: tod(), status: 'pending', questions: JSON.parse(JSON.stringify(pendingQ)) });
+  await save(); cm('m-sq'); rSuivi(); toast('Questionnaire envoyé.', 'ok');
+}
+
+async function delQ(qid) {
+  if (!confirm('Supprimer ce questionnaire ?')) return;
+  DB.questionnaires = DB.questionnaires.filter(q => q.id !== qid);
+  await save(); rSuivi(); toast('Questionnaire supprimé.', 'info');
+}
+
+/* ── Fill questionnaire (client) ── */
+function openFQ(qid) {
+  const q = DB.questionnaires.find(x => x.id === qid); if (!q) return;
+  g('m-fq-t').textContent = q.title;
+  g('m-fq-b').innerHTML = q.questions.map((qs, i) => renderQ(qs, i)).join('');
+  g('m-fq-sv').onclick = () => submitFQ(qid);
+  om('m-fq');
+}
+function renderQ(qs, idx) {
+  const types = {
+    short: `<input type="text" id="qa-${qs.id}" value="${esc(qs.answer)}" placeholder="Votre réponse…">`,
+    long: `<textarea id="qa-${qs.id}" rows="3" placeholder="Votre réponse…">${esc(qs.answer)}</textarea>`,
+    mc: `<div class="qopts">${(qs.options||[]).map(o=>`<label class="qopt${qs.answer===o?' sel':''}"><input type="radio" name="qa-${qs.id}" value="${esc(o)}" ${qs.answer===o?'checked':''}>${o}</label>`).join('')}</div>`,
+    scale: `<div class="qscale" data-qid="${qs.id}">${range(qs.min||1,qs.max||10).map(n=>`<div class="qsb${String(qs.answer)===String(n)?' sel':''}" onclick="selScale(this)">${n}</div>`).join('')}</div>`
+  };
+  return `<div class="qcard"><div class="q-num">Question ${idx+1}</div><div class="q-q">${qs.question}</div>${types[qs.type]||types.short}</div>`;
+}
+function selScale(el) {
+  el.closest('.qscale').querySelectorAll('.qsb').forEach(b => b.classList.toggle('sel', b === el));
+}
+async function submitFQ(qid) {
+  const q = DB.questionnaires.find(x => x.id === qid); if (!q) return;
+  q.questions.forEach(qs => {
+    if (qs.type === 'short' || qs.type === 'long') { qs.answer = (g(`qa-${qs.id}`)?.value || '').trim(); }
+    else if (qs.type === 'mc') { const sel = document.querySelector(`[name="qa-${qs.id}"]:checked`); qs.answer = sel ? sel.value : ''; }
+    else if (qs.type === 'scale') { const sel = document.querySelector(`.qscale[data-qid="${qs.id}"] .qsb.sel`); qs.answer = sel ? sel.textContent : ''; }
+  });
+  q.status = 'returned';
+  await save(); cm('m-fq'); rClDocs(); toast('Réponses envoyées. Merci !', 'ok');
+}
+
+/* ════════════════════════════════════════════
+   TIMELINE
+════════════════════════════════════════════ */
+function openTL() {
+  const clients = DB.users.filter(u => u.role === 'client');
+  g('tl-cl').innerHTML = clients.map(c => `<option value="${c.id}">${c.fn} ${c.ln}</option>`).join('');
+  g('tl-n').value = ''; g('tl-s').value = '';
+  om('m-tl');
+}
+function openTLfor(cid) { openTL(); g('tl-cl').value = cid; }
+async function addTl() {
+  const cid = parseInt(g('tl-cl').value);
+  const t = v('tl-n').trim(), s = v('tl-s').trim(), st = g('tl-st').value;
+  if (!t) { toast('Titre requis.', 'err'); return; }
+  if (!DB.timelines[String(cid)]) DB.timelines[String(cid)] = [];
+  DB.timelines[String(cid)].push({ id: DB.nid++, t, s, st });
+  await save(); cm('m-tl'); rSuivi(); toast('Étape ajoutée.', 'ok');
+}
+
+/* ════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════ */
+const g = id => document.getElementById(id);
+const v = id => g(id)?.value || '';
+const esc = s => (s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const tod = () => new Date().toISOString().split('T')[0];
+const fmtD = d => d.toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+const range = (a,b) => { const r=[]; for(let i=a;i<=b;i++) r.push(i); return r; };
+
+function chip(u) {
+  return `<div style="display:flex;align-items:center;gap:.6rem">
+    <div class="av av${u.avi%6}" style="width:30px;height:30px;font-size:.7rem">${u.av}</div>
+    <div><div style="font-weight:500;font-size:.855rem">${u.fn} ${u.ln}</div><div class="t3" style="font-size:.73rem">@${u.un}</div></div>
+  </div>`;
+}
+function stag(s) {
+  const m = {'en cours':'<span class="tag t-inf">En cours</span>','en attente':'<span class="tag t-warn">En attente</span>','terminé':'<span class="tag t-ok">Terminé</span>'};
+  return m[s] || `<span class="tag t-neu">${s||'—'}</span>`;
+}
+function rpill(r) {
+  const m = { admin:`<span class="tag" style="background:rgba(204,120,92,.13);color:var(--acc)">Admin</span>`, controleur:`<span class="tag t-ok">Contrôleur</span>`, client:`<span class="tag t-inf">Client</span>` };
+  return m[r] || `<span class="tag t-neu">${r}</span>`;
+}
+
+/* Modals */
+function om(id) { g(id).classList.add('on'); }
+function cm(id) { g(id).classList.remove('on'); }
+document.querySelectorAll('.mbg').forEach(m => { m.addEventListener('click', e => { if (e.target === m) m.classList.remove('on'); }); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.mbg.on').forEach(m => m.classList.remove('on')); });
+
+/* Toast */
+function toast(msg, type='info') {
+  const cls = { ok:'t-ok2', err:'t-err2', info:'t-inf2' };
+  const el = document.createElement('div');
+  el.className = `toast ${cls[type]||'t-inf2'}`; el.textContent = msg;
+  g('toasts').appendChild(el);
+  setTimeout(() => { el.style.opacity='0'; el.style.transform='translateX(16px)'; el.style.transition='all .3s'; setTimeout(()=>el.remove(),300); }, 3200);
+}
+</script>
+</body>
+</html>
